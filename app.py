@@ -245,13 +245,13 @@ def show_overview_tab(df, selected_start, selected_end):
         # Filtrar datos de hoy
         today_df = df[df['date'] == today]
         fig_today = create_channel_bar_chart(today_df, "Ventas de Hoy por Canal")
-        st.plotly_chart(fig_today, use_container_width=True)
+        st.plotly_chart(fig_today, use_container_width=True, key="chart_today_channel")
     
     with col2:
         # Filtrar datos del mes
         month_df = df[(df['date'] >= first_day_month) & (df['date'] <= today)]
         fig_month = create_channel_bar_chart(month_df, "Ventas del Mes por Canal")
-        st.plotly_chart(fig_month, use_container_width=True)
+        st.plotly_chart(fig_month, use_container_width=True, key="chart_month_channel")
     
     st.divider()
     
@@ -261,7 +261,7 @@ def show_overview_tab(df, selected_start, selected_end):
     # Gráfica grande: Total del mes
     month_df = df[(df['date'] >= first_day_month) & (df['date'] <= today)]
     fig_total = create_daily_trend_chart(month_df, "Ventas Diarias del Mes - Total")
-    st.plotly_chart(fig_total, use_container_width=True)
+    st.plotly_chart(fig_total, use_container_width=True, key="chart_total_trend")
     
     # Gráficas pequeñas por canal
     st.subheader("Tendencias por Canal")
@@ -273,7 +273,7 @@ def show_overview_tab(df, selected_start, selected_end):
     for idx, channel in enumerate(channels):
         with col1 if idx % 2 == 0 else col2:
             fig_channel = create_daily_trend_chart(month_df, f"{channel}", channel)
-            st.plotly_chart(fig_channel, use_container_width=True)
+            st.plotly_chart(fig_channel, use_container_width=True, key=f"chart_trend_{channel.lower().replace(' ', '_')}")
 
 def show_top_products_tab(df):
     """Mostrar pestaña de top productos"""
@@ -367,7 +367,7 @@ def show_top_products_tab(df):
             # Mostrar tabla
             st.dataframe(
                 display_df,
-                use_container_width=True,
+                width='stretch',
                 hide_index=True,
                 column_config={
                     "#": st.column_config.NumberColumn(
@@ -433,7 +433,7 @@ def show_top_products_tab(df):
                 showlegend=False
             )
             
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="chart_top_products")
             
         except Exception as e:
             st.error(f"Error al procesar productos: {str(e)}")
@@ -500,6 +500,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
 
 
 
