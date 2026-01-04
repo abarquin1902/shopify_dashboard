@@ -41,13 +41,19 @@ def get_mexico_now():
 
 def get_date_range_filters(start_date, end_date):
     """Convertir fechas a timestamps para filtros"""
+    # Inicio del día en México
     start_datetime = datetime.combine(start_date, datetime.min.time())
-    end_datetime = datetime.combine(end_date, datetime.max.time())
-    
     start_datetime = MEXICO_TZ.localize(start_datetime)
+    
+    # Fin del día en México (23:59:59.999999)
+    end_datetime = datetime.combine(end_date, datetime.max.time())
     end_datetime = MEXICO_TZ.localize(end_datetime)
     
-    return start_datetime.isoformat(), end_datetime.isoformat()
+    # Convertir a UTC para la consulta (Supabase guarda en UTC)
+    start_utc = start_datetime.astimezone(pytz.UTC)
+    end_utc = end_datetime.astimezone(pytz.UTC)
+    
+    return start_utc.isoformat(), end_utc.isoformat()
 
 @st.cache_data(ttl=300)
 def load_orders_data(start_date_iso, end_date_iso):
@@ -186,6 +192,22 @@ def show_overview_tab(df, selected_start, selected_end):
     now = get_mexico_now()
     today = now.date()
     first_day_month = today.replace(day=1)
+    
+    # Debug info (colapsable)
+    with st.expander("🔍 Información de Depuración", expanded=False):
+        st.write(f"**Fecha/hora actual (México):** {now.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+        st.write(f"**Fecha de 'hoy':** {today}")
+        st.write(f"**Total órdenes cargadas:** {len(df)}")
+        if not df.empty:
+            st.write(f"**Rango de fechas en datos:** {df['date'].min()} a {df['date'].max()}")
+            st.write(f"**Órdenes con fecha = hoy:** {len(df[df['date'] == today])}")
+            st.write(f"**Órdenes del mes:** {len(df[(df['date'] >= first_day_month) & (df['date'] <= today)])}")
+            
+            # Mostrar distribución de fechas
+            date_counts = df['date'].value_counts().sort_index().tail(7)
+            st.write("**Últimas 7 fechas con órdenes:**")
+            for date, count in date_counts.items():
+                st.write(f"  - {date}: {count} órdenes")
     
     # Calcular KPIs
     kpis_today = calculate_kpis(df, today, today)
@@ -500,6 +522,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
 
 
 
